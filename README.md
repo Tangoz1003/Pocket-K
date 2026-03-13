@@ -1,5 +1,19 @@
 # Pocket-K
 
+Pocket-K is a toolkit for **single-lead ECG-based hyperkalemia risk screening**.
+
+It provides a practical pipeline for:
+
+- ECG preprocessing,
+- model inference,
+- batch evaluation,
+- result analysis, and
+- deployment-oriented integration in handheld workflows.
+
+This repository is designed for **tool use and reproducible execution**, including input preparation, inference, and downstream analysis.
+
+---
+
 **Pocket-K** is a lightweight toolkit for **single-lead ECG preprocessing, hyperkalemia risk inference, and deployment-oriented screening workflows**.
 
 It is designed for scenarios such as:
@@ -51,6 +65,8 @@ Model Inference
 Risk Score Output
     ↓
 Visualization / Analysis / Deployment
+```
+
 ---
 
 ## Input Format
@@ -177,5 +193,3 @@ You can adjust this section to match your actual repository structure.
 ## Citation
 
 If you use this repository in your research or development workflow, please cite the corresponding paper.
-
-````
