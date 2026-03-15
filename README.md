@@ -65,6 +65,14 @@ pip install -r requirements.txt
 
 ---
 
+## Pre-trained Weights
+
+The pre-trained weights (`checkpoint.pth`) are hosted on Hugging Face due to file size limits. 
+Please download them from [Hugging Face Model Hub](https://huggingface.co/Tangoz1003/Pocket-K-Weights/resolve/main/checkpoint.pth) and place the file inside the `checkpoint/` directory before running the scripts.
+
+
+---
+
 ## Quick Start
 
 ### 1. Train or Fine-tune
