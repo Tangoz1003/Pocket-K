@@ -1,101 +1,103 @@
 import os
 import numpy as np
 import pandas as pd
-import wfdb
-from scipy import signal
 import torch
-from torch.utils.data import Dataset, DataLoader
-import torchvision.transforms as transforms
-from scipy.signal import resample
+from torch.utils.data import Dataset
 
-
-class K_1lead_cls_Dataset(Dataset):
-    def __init__(self, ecg_path, labels_df, transform=None):
+class Custom1DDataset(Dataset):
+    """
+    A unified PyTorch Dataset for 1D signal data (e.g., single-lead ECG).
+    Handles loading, lead extraction, dynamic padding/cropping, and normalization.
+    """
+    def __init__(self, data_dir, labels_df, target_cols=["label"], transform=None):
         """
         Args:
-            labels_df (DataFrame): DataFrame containing the annotations.
-            data_dir (str): Directory path containing the numpy data files.
+            data_dir (str): Directory path containing the .npy data files.
+            labels_df (DataFrame): DataFrame containing annotations.
+            target_cols (list): List of column names to be used as prediction targets.
             transform (callable, optional): Optional transform to be applied on a sample.
         """
-        self.labels_df = labels_df
+        self.data_dir = data_dir
+        self.labels_df = labels_df.reset_index(drop=True)
+        self.target_cols = target_cols
         self.transform = transform
-        self.ecg_path = ecg_path
+        
+        # Standard 12-lead names
         self.input_leads = ['I', 'II', 'III', 'aVR', 'aVF', 'aVL', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
+        # Leads to extract for the model (Lead I by default)
         self.new_leads = ['I']
         self.lead_indices = [self.input_leads.index(lead) for lead in self.new_leads]
 
     def __len__(self):
         return len(self.labels_df)
 
-    def z_score_normalization(self,signal):
-        return (signal - np.mean(signal)) / (np.std(signal) +1e-8) 
-
-    def check_nan_in_array(self, arr):
-        contains_nan = np.isnan(arr).any()
-        return contains_nan
+    def z_score_normalization(self, signal):
+        """Normalize signal to zero mean and unit variance."""
+        return (signal - np.mean(signal)) / (np.std(signal) + 1e-8) 
     
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
             
         record = self.labels_df.iloc[idx]
-        file_path = record["file_path"]
-        if self.ecg_path and not os.path.isabs(file_path):
-            file_path = os.path.join(self.ecg_path, file_path)
-        values = record["original_value"]
+        file_path = record.get("file_path", "")
+        
+        # Resolve absolute path
+        if self.data_dir and not os.path.isabs(file_path):
+            file_path = os.path.join(self.data_dir, file_path)
+            
+        # Extract ground truth values and labels
+        values = record.get("original_value", 0.0)
         values = np.array(values, dtype=np.float32)
-        labels = record["label"]
+        
+        # Dynamically load target labels based on provided column names
+        if len(self.target_cols) == 1 and self.target_cols[0] in record:
+            labels = record[self.target_cols[0]]
+        else:
+            labels = record.get("label", 0.0) # Fallback to standard 'label' column
         labels = np.array(labels, dtype=np.float32)
 
-        # 2. 加载数据
+        # Load 1D signal data
         try:
-            data = np.load(file_path) # 形状 (12000, 12)
+            data = np.load(file_path) # Expected shape: (time_steps, channels) e.g., (12000, 12)
         except FileNotFoundError:
-            # 容错：直接返回一个符合目标形状的全0数组
+            # Fallback to zeros if file is missing to prevent batch failure
             data = np.zeros((12000, 12), dtype=np.float32)
             
-        data = np.nan_to_num(data, nan=0)
+        data = np.nan_to_num(data, nan=0.0)
         
-        # 3. 维度转置 (12000, 12) -> (12, 12000)
-        # 必须先转置，把 '时间' 放到第1维，方便切片
+        # Transpose: (12000, 12) -> (12, 12000)
         data = np.transpose(data, (1, 0)) 
         
-        # 4. 提取导联 (12, 12000) -> (1, 12000)
+        # Extract specific leads: (12, 12000) -> (1, 12000)
         data = data[self.lead_indices, :] 
 
-        # ==========================================
-        # 【核心修改区】 5000点 截取/补零 逻辑
-        # ==========================================
+        # Center crop or pad to exactly 5000 time steps
         target_len = 5000
-        current_len = data.shape[1] # 现在是 12000
+        current_len = data.shape[1] 
         
         if current_len > target_len:
-            # A. 超过5000：取中间
+            # Center crop
             start = (current_len - target_len) // 2
             end = start + target_len
             data = data[:, start:end]
             
         elif current_len < target_len:
-            # B. 不足5000：末尾补0 (也可以改为两边补，这里用末尾补0最稳妥)
+            # Zero-pad at the end
             pad_len = target_len - current_len
-            # ((0,0), (0, pad_len)) 表示：第0维(导联)不补，第1维(时间)右侧补 pad_len 个 0
-            data = np.pad(data, ((0,0), (0, pad_len)), mode='constant')
+            data = np.pad(data, ((0, 0), (0, pad_len)), mode='constant')
+
+        # Z-score normalization
+        signal_data = self.z_score_normalization(data)
+        signal_tensor = torch.FloatTensor(signal_data)
+
+        # Format output tensors
+        values_tensor = torch.tensor(values, dtype=torch.float)
+        if values_tensor.dim() == 0:
+            values_tensor = values_tensor.unsqueeze(0) 
+
+        labels_tensor = torch.tensor(labels, dtype=torch.float)
+        if labels_tensor.dim() == 0:  
+            labels_tensor = labels_tensor.unsqueeze(0)
             
-        # C. 刚好5000：不做处理，直接用
-        # ==========================================
-
-        # 5. 归一化 (此时 data 形状固定为 (1, 5000))
-        signal = self.z_score_normalization(data)
-        signal = torch.FloatTensor(signal)
-
-        # 6. 标签维度处理 (保持不变)
-        values = torch.tensor(values, dtype=torch.float)
-        if values.dim() == 0:
-            values = values.unsqueeze(0) 
-
-        labels = torch.tensor(labels, dtype=torch.float)
-        if labels.dim() == 0:  
-            labels = labels.unsqueeze(0)
-            
-        return signal, labels, values
-    
+        return signal_tensor, labels_tensor, values_tensor
