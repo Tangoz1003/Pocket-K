@@ -119,4 +119,20 @@ This will output a `.csv` file containing the true labels, predicted probabiliti
 
 ---
 
+## Citation
+
+If you find this work or the pre-trained weights useful in your research, please cite the following paper:
+
+**BibTeX:**
+```latex
+@misc{tang2026artificialintelligenceenabledsingleleadecg,
+      title={Artificial intelligence-enabled single-lead ECG for non-invasive hyperkalemia detection: development, multicenter validation, and proof-of-concept deployment}, 
+      author={Gongzheng Tang and Qinghao Zhao and Guangkun Nie and Yujie Xiao and Shijia Geng and Donglin Xie and Shun Huang and Deyun Zhang and Xingchen Yao and Jinwei Wang and Kangyin Chen and Luxia Zhang and Shenda Hong},
+      year={2026},
+      eprint={2603.14177},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2603.14177}, 
+}
+
 
