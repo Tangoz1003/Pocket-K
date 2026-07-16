@@ -1,0 +1,5 @@
+deployment_ecg_path,deployment_ecg_file,demo_sample_id,demo_note,pred_prob
+test_data/ecg_npy/demo_ecg_000.npy,demo_ecg_000.npy,demo_sample_000,synthetic demo input,0.04156794026494026
+test_data/ecg_npy/demo_ecg_001.npy,demo_ecg_001.npy,demo_sample_001,synthetic demo input,0.014748355373740196
+test_data/ecg_npy/demo_ecg_002.npy,demo_ecg_002.npy,demo_sample_002,synthetic demo input,0.05208486691117287
+test_data/ecg_npy/demo_ecg_003.npy,demo_ecg_003.npy,demo_sample_003,synthetic demo input,0.03097577951848507

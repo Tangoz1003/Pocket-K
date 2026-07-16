@@ -1,0 +1,25 @@
+{
+  "model_name": "Pocket-K handheld inference model",
+  "checkpoint_path": "model/pocket_k_model.pth",
+  "input_leads": 1,
+  "lead_used": "I",
+  "sample_rate": 500,
+  "signal_length": 5000,
+  "apply_filter": true,
+  "preprocessing": {
+    "bandpass_low_hz": 0.5,
+    "bandpass_high_hz": 40.0,
+    "notch_hz": 50,
+    "normalization": "z-score"
+  },
+  "handheld_pipeline": {
+    "measurement_seconds": 30.0,
+    "clip_seconds": 10.0,
+    "clip_count": 3,
+    "aggregation": "mean_clip_score",
+    "input_note": "The public backend reference implementation starts from an anonymized ECG array supplied by a paired app or uploader; BLE acquisition and mobile UI code are not included in this backend package."
+  },
+  "endpoint": "serum potassium > 5.5 mmol/L",
+  "threshold_note": "Operating thresholds are deployment- and site-specific and are intentionally omitted from this public demo configuration. To enable categorical risk groups in a private deployment, add a private thresholds object with low_risk_threshold and high_risk_threshold.",
+  "training_note": "Public demo outputs are continuous model scores only."
+}
