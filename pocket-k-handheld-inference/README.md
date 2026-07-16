@@ -172,17 +172,10 @@ POST /api/predict_upload
 POST /api/predict_handheld_upload
 ```
 
-## GitHub Upload
+## Repository Note
 
-The model checkpoint is a large binary file and should be stored with Git LFS:
+This directory is intended to live inside the main Pocket-K repository:
 
-```bash
-git lfs install
-git lfs track "model/*.pth"
-git add .gitattributes
-git add .
-git commit -m "Release Pocket-K handheld inference reference implementation"
-git branch -M main
-git remote add origin git@github.com:YOUR_ORG/pocket-k-handheld-inference.git
-git push -u origin main
-```
+`Pocket-K/pocket-k-handheld-inference/`
+
+The model checkpoint is a large binary file and is tracked with Git LFS through this directory's `.gitattributes` file.

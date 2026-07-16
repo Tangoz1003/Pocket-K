@@ -15,6 +15,26 @@ It provides a streamlined pipeline for model training, batch inference, and resu
 
 ---
 
+## Handheld Inference Reference Implementation
+
+This repository includes a public backend reference implementation for the handheld proof-of-concept pipeline:
+
+`pocket-k-handheld-inference/`
+
+It contains the model definition, preprocessing utilities, a 10-second inference script, a 30-second handheld segmentation and aggregation pipeline, a lightweight FastAPI service, synthetic demo ECG inputs, and example outputs. The bundled demo data are synthetic and do not contain patient identifiers, timestamps, or laboratory values. Operating thresholds are intentionally omitted from the public demo; the reference implementation reports continuous model scores.
+
+Quick smoke test:
+
+```bash
+cd pocket-k-handheld-inference
+python code/deploy_test_inference.py --device cpu
+python code/handheld_pipeline.py --device cpu
+```
+
+The model checkpoint in `pocket-k-handheld-inference/model/` is tracked with Git LFS.
+
+---
+
 ## Repository Structure
 
 ```text
@@ -134,5 +154,4 @@ If you find this work or the pre-trained weights useful in your research, please
       primaryClass={cs.LG},
       url={https://arxiv.org/abs/2603.14177}, 
 }
-
 
